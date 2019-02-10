@@ -50,6 +50,11 @@ int main(int argc, char *argv[])
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GFX_MCLK, size, &reading);
     qDebug() << "memclk" << reading << ret;
 
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_AVG_POWER, size, &reading);
+    qDebug() << "powerdraw" << reading << ret;
+
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_LOAD, size, &reading);
+    qDebug() << "coreutil" << reading << ret;
     /*char *name;
     char *busid;
     int ret = drmOpen(name, busid);
