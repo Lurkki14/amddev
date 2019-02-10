@@ -36,10 +36,19 @@ int main(int argc, char *argv[])
     int ret = amdgpu_device_initialize(fd, &major, &minor, &handle);
     qDebug() << ret << major;
 
-    int load = 0;
+    int reading = 0;
     uint size = 64;
-    amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_TEMP, size, &load);
-    qDebug() << load;
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_TEMP, size, &reading);
+    qDebug() << "temp" << reading << ret;
+
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_VDDGFX, size, &reading);
+    qDebug() << "voltage" << reading << ret;
+
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GFX_SCLK, size, &reading);
+    qDebug() << "coreclk" << reading << ret;
+
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GFX_MCLK, size, &reading);
+    qDebug() << "memclk" << reading << ret;
 
     /*char *name;
     char *busid;
