@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     buffer.sensor_info.type = sensor;*/
 
     int fd = 0;
-    fd = open("/dev/dri/card0", O_RDONLY);
+    fd = open("/dev/dri/renderD128", O_RDONLY);
     qDebug() << fd;
 
     char driver[64];
