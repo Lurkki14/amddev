@@ -34,34 +34,43 @@ int main(int argc, char *argv[])
     uint32_t minor = 0;
     amdgpu_device_handle handle;
     int ret = amdgpu_device_initialize(fd, &major, &minor, &handle);
-    qDebug() << ret << major;
+    //qDebug() << ret << major;
+    printf("%d\n", major);
 
     int reading = 0;
     uint size = sizeof (int);
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_TEMP, size, &reading);
-    qDebug() << "temp" << reading << ret;
+    //qDebug() << "temp" << reading << ret;
+    printf("temp: %d\n", reading);
 
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_VDDGFX, size, &reading);
-    qDebug() << "voltage" << reading << ret;
+    //qDebug() << "voltage" << reading << ret;
+    printf("voltage: %d\n", reading);
 
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GFX_SCLK, size, &reading);
-    qDebug() << "coreclk" << reading << ret;
+    //qDebug() << "coreclk" << reading << ret;
+    printf("coreclk: %d\n", reading);
 
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GFX_MCLK, size, &reading);
-    qDebug() << "memclk" << reading << ret;
+    //qDebug() << "memclk" << reading << ret;
+    printf("memclk: %d\n", reading);
 
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_AVG_POWER, size, &reading);
-    qDebug() << "powerdraw" << reading << ret;
+    //qDebug() << "powerdraw" << reading << ret;
+    printf("powerdraw: %d\n", reading);
 
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_LOAD, size, &reading);
-    qDebug() << "coreutil" << reading << ret;
+    //qDebug() << "coreutil" << reading << ret;
+    printf("gpuutil: %d\n", reading);
 
     const char *name = amdgpu_get_marketing_name(handle);
-    qDebug() << name;
+    //qDebug() << name;
+    printf("memclk: %s\n", name);
 
     amdgpu_gpu_info info;
     ret = amdgpu_query_gpu_info(handle, &info);
-    qDebug() << info.max_memory_clk << "max memclk" << ret;
+    printf("max memclk: %d\n", info.max_memory_clk);
+    //qDebug() << info.max_memory_clk << "max memclk" << ret;
     /*char *name;
     char *busid;
     int ret = drmOpen(name, busid);
