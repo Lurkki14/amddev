@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
     qDebug() << ret << major;
 
     int reading = 0;
-    uint size = 64;
+    uint size = sizeof (int);
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_TEMP, size, &reading);
     qDebug() << "temp" << reading << ret;
 
@@ -55,6 +55,13 @@ int main(int argc, char *argv[])
 
     ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_GPU_LOAD, size, &reading);
     qDebug() << "coreutil" << reading << ret;
+
+    const char *name = amdgpu_get_marketing_name(handle);
+    qDebug() << name;
+
+    amdgpu_gpu_info info;
+    ret = amdgpu_query_gpu_info(handle, &info);
+    qDebug() << info.max_memory_clk << "max memclk" << ret;
     /*char *name;
     char *busid;
     int ret = drmOpen(name, busid);
