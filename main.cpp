@@ -1,5 +1,7 @@
 #include <QCoreApplication>
 #include <QDebug>
+#include <QFile>
+#include <QTextStream>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <libdrm/amdgpu_drm.h>
@@ -65,11 +67,33 @@ int main(int argc, char *argv[])
 
     const char *name = amdgpu_get_marketing_name(handle);
     //qDebug() << name;
-    printf("memclk: %s\n", name);
+    printf("name: %s\n", name);
+
 
     amdgpu_gpu_info info;
     ret = amdgpu_query_gpu_info(handle, &info);
+    // These are the values for the highest pstate
     printf("max memclk: %d\n", info.max_memory_clk);
+    printf("max coreclk: %d\n", info.max_engine_clk);
+
+    // Read the pp_od_clk_voltage for the current GPU
+    QString path = "/sys/class/drm/card0/device/pp_od_clk_voltage";
+    QFile file(path);
+    bool retb = file.open(QFile::ReadOnly | QFile::Text);
+    if (retb) printf("File opened successfully\n");
+    else printf("Failed to open file\n");
+    QTextStream str(&file);
+    QString line;
+    char *linechar;
+    int breakcount = 0;
+    while (!str.atEnd() && breakcount < 100) {
+        line = str.readLine();
+        QByteArray arr = line.toLocal8Bit();
+        linechar = arr.data();
+        printf("%s\n", linechar);
+        breakcount++;
+    }
+
     //qDebug() << info.max_memory_clk << "max memclk" << ret;
     /*char *name;
     char *busid;
