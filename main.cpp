@@ -23,7 +23,8 @@ int main(int argc, char *argv[])
 
     int fd = 0;
     fd = open("/dev/dri/renderD128", O_RDONLY);
-    qDebug() << fd;
+    //qDebug() << fd;
+    printf("%d\n", fd);
 
     char driver[64];
     drm_version_t ver;
@@ -37,7 +38,7 @@ int main(int argc, char *argv[])
     amdgpu_device_handle handle;
     int ret = amdgpu_device_initialize(fd, &major, &minor, &handle);
     //qDebug() << ret << major;
-    printf("%d\n", major);
+    printf("%d %d\n", major, ret);
 
     int reading = 0;
     uint size = sizeof (int);
@@ -76,6 +77,14 @@ int main(int argc, char *argv[])
     printf("max memclk: %d\n", info.max_memory_clk);
     printf("max coreclk: %d\n", info.max_engine_clk);
 
+    //ret = amdgpu_query_info(handle, AMDGPU_INFO_VIS_VRAM_USAGE, size, &reading);
+
+    drm_amdgpu_info_vce_clock_table table;
+    printf("number of clock table entries: %d\n", table.num_valid_entries);
+    for (int i=0; i<table.num_valid_entries; i++) {
+        printf("entry %d %d\n", i, table.entries[i].sclk);
+    }
+
     // Read the pp_od_clk_voltage for the current GPU
     QString path = "/sys/class/drm/card0/device/pp_od_clk_voltage";
     QFile file(path);
@@ -86,13 +95,14 @@ int main(int argc, char *argv[])
     QString line;
     char *linechar;
     int breakcount = 0;
-    while (!str.atEnd() && breakcount < 100) {
+    while (!str.atEnd() && breakcount < 50) {
         line = str.readLine();
         QByteArray arr = line.toLocal8Bit();
         linechar = arr.data();
         printf("%s\n", linechar);
         breakcount++;
     }
+
 
     //qDebug() << info.max_memory_clk << "max memclk" << ret;
     /*char *name;
