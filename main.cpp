@@ -143,7 +143,6 @@ int main(int argc, char *argv[])
             }*/
 
 
-            valuetype++;
             QString capline = nummatch.captured();
             int num = capline.toInt();
             QByteArray arr = line.toLocal8Bit();
@@ -181,7 +180,7 @@ int main(int argc, char *argv[])
                     else maxvolt = num;
                 }
             }
-
+            valuetype++;
         }
         breakcount++;
         valuetype = 0;
