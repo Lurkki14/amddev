@@ -126,7 +126,6 @@ int main(int argc, char *argv[])
             if (type == 3) printf("Range values: %s %s\n", capnum, linechar);
         }
         breakcount++;
-        type = 0;
     }
 
     return a.exec();
