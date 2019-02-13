@@ -1,6 +1,7 @@
 #include <QCoreApplication>
 #include <QDebug>
 #include <QFile>
+#include <QDir>
 #include <QTextStream>
 #include <QRegularExpressionMatch>
 #include <sys/ioctl.h>
@@ -85,6 +86,21 @@ int main(int argc, char *argv[])
         printf("entry %d: %d %d\n", i, table.entries[i].sclk, table.entries[i].mclk);
     }*/
 
+    // Read fan speed in % and mode (1 = automatic, 2 = manual)
+    QString monpath = "/sys/class/drm/card0/device/hwmon";
+
+    // Regexp for the hwmon folder since the index can change
+    QDir mondir(monpath);
+    qDebug() << mondir.entryList() << "mondir";
+    QStringList list = mondir.entryList();
+    for (int i=0; i<list.size(); i++) {
+        if (list[i].contains("hwmon")) {
+            qDebug() << list[i];
+            mondir.setPath(monpath+"/"+list[i]);
+        }
+    }
+    qDebug() << mondir.entryList();
+
     // Read the pp_od_clk_voltage for the current GPU
     QString path = "/sys/class/drm/card0/device/pp_od_clk_voltage";
     //QString path = "/etc/X11/xorg.conf.d/20-nvidia.conf.bak";
@@ -99,6 +115,14 @@ int main(int argc, char *argv[])
     int breakcount = 0;
     char *capnum;
     int type = 0;
+    int valuetype = 0;
+    QVector <int> memvolts, corevolts, core, mem;
+    int maxvolt = 0;
+    int minvolt = 0;
+    int minmemclk = 0;
+    int maxmemclk = 0;
+    int maxcoreclk = 0;
+    int mincoreclk = 0;
     while (!str.atEnd() && breakcount < 50) {
         line = str.readLine();
         if (line.contains("OD_SCLK")) type = 1;
@@ -117,16 +141,61 @@ int main(int argc, char *argv[])
                     qDebug() << nummatch.captured() << line <<"mem clock values";
                     break;
             }*/
+
+
+            valuetype++;
+            QString capline = nummatch.captured();
+            int num = capline.toInt();
             QByteArray arr = line.toLocal8Bit();
             linechar = arr.data();
             QByteArray caparr = nummatch.captured().toLocal8Bit();
             capnum = caparr.data();
-            if (type == 1) printf("Core values: %s %s\n", capnum, linechar);
-            if (type == 2) printf("Memory values: %s %s\n", capnum, linechar);
-            if (type == 3) printf("Range values: %s %s\n", capnum, linechar);
+            if (type == 1) {
+                //printf("Core values: %s %s\n", capnum, linechar);
+                if (valuetype == 0) {
+                    core.append(num);
+                } else {
+                    corevolts.append(num);
+                }
+            }
+            if (type == 2) {
+                //printf("Memory values: %s %s\n", capnum, linechar);
+                if (valuetype == 0) {
+                    mem.append(num);
+                } else {
+                    memvolts.append(num);
+                }
+            }
+            if (type == 3) {
+                //printf("Range values: %s %s\n", capnum, linechar);
+                if (line.contains("sclk", Qt::CaseInsensitive)) {
+                    if (valuetype == 0) mincoreclk = num;
+                    else maxcoreclk = num;
+                }
+                if (line.contains("mclk", Qt::CaseInsensitive)) {
+                    if (valuetype == 0) minmemclk = num;
+                    else maxmemclk = num;
+                }
+                if (line.contains("vddc", Qt::CaseInsensitive)) {
+                    if (valuetype == 0) minvolt = num;
+                    else maxvolt = num;
+                }
+            }
+
         }
         breakcount++;
+        valuetype = 0;
     }
+
+    for (int i=0; i<core.size(); i++) {
+        printf("Core clock pstate %d: %d %d\n", i, core[i], corevolts[i]);
+    }
+    for (int i=0; i<mem.size(); i++) {
+        printf("Mem clock pstate %d: %d %d\n", i, mem[i], memvolts[i]);
+    }
+    printf("Voltage limits: %d-%d\n", minvolt, maxvolt);
+    printf("Core clock limits: %d-%d\n", mincoreclk, maxcoreclk);
+    printf("Mem clock limits: %d-%d\n", minmemclk, maxmemclk);
 
     return a.exec();
 }
