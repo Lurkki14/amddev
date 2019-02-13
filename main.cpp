@@ -2,6 +2,7 @@
 #include <QDebug>
 #include <QFile>
 #include <QTextStream>
+#include <QRegularExpressionMatch>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <libdrm/amdgpu_drm.h>
@@ -77,56 +78,56 @@ int main(int argc, char *argv[])
     printf("max memclk: %d\n", info.max_memory_clk);
     printf("max coreclk: %d\n", info.max_engine_clk);
 
-    //ret = amdgpu_query_info(handle, AMDGPU_INFO_VIS_VRAM_USAGE, size, &reading);
 
-    drm_amdgpu_info_vce_clock_table table;
+    /*drm_amdgpu_info_vce_clock_table table;
     printf("number of clock table entries: %d\n", table.num_valid_entries);
     for (int i=0; i<table.num_valid_entries; i++) {
-        printf("entry %d %d\n", i, table.entries[i].sclk);
-    }
+        printf("entry %d: %d %d\n", i, table.entries[i].sclk, table.entries[i].mclk);
+    }*/
 
     // Read the pp_od_clk_voltage for the current GPU
     QString path = "/sys/class/drm/card0/device/pp_od_clk_voltage";
+    //QString path = "/etc/X11/xorg.conf.d/20-nvidia.conf.bak";
     QFile file(path);
     bool retb = file.open(QFile::ReadOnly | QFile::Text);
     if (retb) printf("File opened successfully\n");
     else printf("Failed to open file\n");
     QTextStream str(&file);
     QString line;
+    QRegularExpression numexp("\\d+\\d");
     char *linechar;
     int breakcount = 0;
+    char *capnum;
+    int type = 0;
     while (!str.atEnd() && breakcount < 50) {
         line = str.readLine();
-        QByteArray arr = line.toLocal8Bit();
-        linechar = arr.data();
-        printf("%s\n", linechar);
+        if (line.contains("OD_SCLK")) type = 1;
+        if (line.contains("OD_MCLK")) type = 2;
+        if (line.contains("OD_RANGE")) type = 3;
+
+        QRegularExpressionMatchIterator i = numexp.globalMatch(line);
+        while (i.hasNext()) {
+            QRegularExpressionMatch nummatch = i.next();
+            /*switch (type) {
+                case 1:
+                    qDebug() << nummatch.captured() << line <<"core clock values";
+                    break;
+                case 2:
+                    QRegularExpressionMatch nummatch = i.next();
+                    qDebug() << nummatch.captured() << line <<"mem clock values";
+                    break;
+            }*/
+            QByteArray arr = line.toLocal8Bit();
+            linechar = arr.data();
+            QByteArray caparr = nummatch.captured().toLocal8Bit();
+            capnum = caparr.data();
+            if (type == 1) printf("Core values: %s %s\n", capnum, linechar);
+            if (type == 2) printf("Memory values: %s %s\n", capnum, linechar);
+            if (type == 3) printf("Range values: %s %s\n", capnum, linechar);
+        }
         breakcount++;
+        type = 0;
     }
-
-
-    //qDebug() << info.max_memory_clk << "max memclk" << ret;
-    /*char *name;
-    char *busid;
-    int ret = drmOpen(name, busid);
-    qDebug() << ret;
-
-    uint32_t major;
-    uint32_t minor;
-    amdgpu_device_handle handle;
-    ret = amdgpu_device_initialize(fd, &major, &minor, &handle);
-    qDebug() << ret;
-    int ret = drmAvailable();
-    qDebug() << ret;
-
-    char *name;
-    char *busid;
-    ret = drmOpen(name, busid);
-    qDebug() << ret;
-
-    qDebug() << busid;
-    uint32_t major;
-    uint32_t minor;
-    amdgpu_device_handle handle;*/
 
     return a.exec();
 }
