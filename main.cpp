@@ -4,12 +4,14 @@
 #include <QDir>
 #include <QTextStream>
 #include <QRegularExpressionMatch>
+#include <QProcess>
 #include <sys/ioctl.h>
 #include <fcntl.h>
 #include <libdrm/amdgpu_drm.h>
 #include <libdrm/amdgpu.h>
 #include <xf86drm.h>
 #include <xf86drmMode.h>
+
 
 int main(int argc, char *argv[])
 {
@@ -72,12 +74,20 @@ int main(int argc, char *argv[])
     //qDebug() << name;
     printf("name: %s\n", name);
 
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_STABLE_PSTATE_GFX_SCLK, size, &reading);
+    printf("core pstate: %d\n", reading);
+
+    ret = amdgpu_query_sensor_info(handle, AMDGPU_INFO_SENSOR_STABLE_PSTATE_GFX_MCLK, size, &reading);
+    printf("memory pstate: %d\n", reading);
+
+
 
     amdgpu_gpu_info info;
     ret = amdgpu_query_gpu_info(handle, &info);
     // These are the values for the highest pstate
     printf("max memclk: %d\n", info.max_memory_clk);
     printf("max coreclk: %d\n", info.max_engine_clk);
+    printf("asic id: %d\n", info.asic_id);
 
 
     /*drm_amdgpu_info_vce_clock_table table;
@@ -198,3 +208,4 @@ int main(int argc, char *argv[])
 
     return a.exec();
 }
+
